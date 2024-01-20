@@ -14,6 +14,10 @@ func GetOrderItems() gin.HandlerFunc {
 	}
 }
 
+func ItemsByOrder(id string) (OrderItems []premetive.M, err error) {
+
+}
+
 func GetOrderItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
 	}
