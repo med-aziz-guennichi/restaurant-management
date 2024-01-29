@@ -25,7 +25,7 @@ func CreateFood() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var menu models.Menu
 		var food models.Food
-
+		defer cancel()
 		if err := c.BindJSON(&food); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -36,7 +36,7 @@ func CreateFood() gin.HandlerFunc {
 			return
 		}
 		err := menuCollection.FindOne(ctx, bson.M{"menu_id": food.Menu_id}).Decode(&menu)
-		defer cancel()
+
 		if err != nil {
 			msg := fmt.Sprintf("Menu was not found")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
