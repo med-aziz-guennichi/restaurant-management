@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang-restaurant-management/database"
 	"golang-restaurant-management/models"
+	"log"
 	"net/http"
 	"time"
 
@@ -68,6 +69,18 @@ func toFixed(num float64, precision int) float64 {
 
 func GetFoods() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		result, err := foodCollection.Find(context.TODO(), bson.M{})
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while listing food items"})
+			return
+		}
+		var allFoods []bson.M
+		if err = result.All(ctx, &allFoods); err != nil {
+			log.Fatal(err)
+		}
+		c.JSON(http.StatusOK, allFoods)
 	}
 }
 
