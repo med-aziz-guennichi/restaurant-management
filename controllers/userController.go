@@ -134,10 +134,35 @@ func UpdateUser() gin.HandlerFunc {
 	}
 }
 
-func HashPassword(password string) string {
+func DeleteUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		userId := c.Param("user_id")
+		defer cancel()
 
+		objId, _ := primitive.ObjectIDFromHex(userId)
+
+		result, err := userCollection.DeleteOne(ctx, bson.M{"user_id": objId})
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			return
+		}
+
+		if result.DeletedCount < 1 {
+			c.JSON(http.StatusNotFound,
+				responses.UserResponse{Status: http.StatusNotFound, Message: "error", Data: map[string]interface{}{"data": "User with specified ID not found!"}},
+			)
+			return
+		}
+		c.JSON(http.StatusOK, responses.UserResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": "User successfully deleted!"}})
+	}
 }
 
-func verifyPassword(userPassword string, providePassword string) (bool, string) {
+// func HashPassword(password string) string {
 
-}
+// }
+
+// func verifyPassword(userPassword string, providePassword string) (bool, string) {
+
+// }
