@@ -77,8 +77,10 @@ func SignUp() gin.HandlerFunc {
 			Password:   user.Password,
 			Phone:      user.Password,
 		}
-
+		// insert a new user into the collection
 		result, err := userCollection.InsertOne(ctx, newUser)
+
+		// return a message and status
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
