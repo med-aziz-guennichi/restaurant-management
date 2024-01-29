@@ -4,12 +4,14 @@ import (
 	"context"
 	"golang-restaurant-management/database"
 	"golang-restaurant-management/models"
+	"golang-restaurant-management/responses"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -51,27 +53,60 @@ func GetUser() gin.HandlerFunc {
 
 func SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		name = c.PostForm("name")
-		email = c.PostForm("email")
-		password = c.PostForm("password")
-
-		// check if the email is already registered
-		count, err := userCollection.CountDocuments(ctx, bson.M{"email": email})
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		var user models.User
 		defer cancel()
-		if err != nil {
-			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the email"})
+
+		//validate the request body
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
-		// if the email is not registered
 
+		//use the validator library to validate required fields
+		if validationErr := validate.Struct(&user); validationErr != nil {
+			c.JSON(http.StatusBadRequest, responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+			return
+		}
+
+		newUser := models.User{
+			ID:         primitive.NewObjectID(),
+			First_name: user.First_name,
+			Last_name:  user.Last_name,
+			Email:      user.Email,
+			Password:   user.Password,
+			Phone:      user.Password,
+		}
+
+		result, err := userCollection.InsertOne(ctx, newUser)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			return
+		}
+
+		c.JSON(http.StatusCreated, responses.UserResponse{Status: http.StatusCreated, Message: "success", Data: map[string]interface{}{"data": result}})
 	}
 }
 
 func Login() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
+	}
+}
+
+func UpdateUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		userId := c.Param("user_id")
+		var user models.User
+		defer cancel()
+		objId, _ := primitive.ObjectIDFromHex(userId)
+
+		// validate the request body
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			return
+		}
 	}
 }
 
