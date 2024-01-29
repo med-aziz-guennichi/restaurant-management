@@ -6,6 +6,7 @@ import (
 	"golang-restaurant-management/database"
 	"golang-restaurant-management/models"
 	"log"
+	"math"
 	"net/http"
 	"time"
 
@@ -59,12 +60,12 @@ func CreateFood() gin.HandlerFunc {
 	}
 }
 
-func round(num float64) int {
+// func round(num float64) int {
 
-}
+// }
 
 func toFixed(num float64, precision int) float64 {
-
+	return math.Round(num*float64(precision)) / float64(precision)
 }
 
 func GetFoods() gin.HandlerFunc {
