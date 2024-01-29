@@ -107,6 +107,30 @@ func UpdateUser() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
 			return
 		}
+
+		// use the validator library to validate required fields
+		if validationErr := validate.Struct(&user); validationErr != nil {
+			c.JSON(http.StatusBadRequest, responses.UserResponse{Status: http.StatusBadRequest, Message: "error", Data: map[string]interface{}{"data": validationErr.Error()}})
+			return
+		}
+
+		update := bson.M{"first_name": user.First_name, "last_name": user.Last_name, "email": user.Email, "phone": user.Phone}
+		result, err := userCollection.UpdateOne(ctx, bson.M{"user_id": objId}, bson.M{"$set": update})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+			return
+		}
+
+		// get update user details
+		var updatedUser models.User
+		if result.MatchedCount == 1 {
+			err := userCollection.FindOne(ctx, bson.M{"user_id": objId}).Decode(&updatedUser)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, responses.UserResponse{Status: http.StatusInternalServerError, Message: "error", Data: map[string]interface{}{"data": err.Error()}})
+				return
+			}
+		}
+		c.JSON(http.StatusOK, responses.UserResponse{Status: http.StatusOK, Message: "success", Data: map[string]interface{}{"data": updatedUser}})
 	}
 }
 
