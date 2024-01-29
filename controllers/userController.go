@@ -51,6 +51,20 @@ func GetUser() gin.HandlerFunc {
 
 func SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		name = c.PostForm("name")
+		email = c.PostForm("email")
+		password = c.PostForm("password")
+
+		// check if the email is already registered
+		count, err := userCollection.CountDocuments(ctx, bson.M{"email": email})
+		defer cancel()
+		if err != nil {
+			log.Panic(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while checking for the email"})
+			return
+		}
+		// if the email is not registered
 
 	}
 }
