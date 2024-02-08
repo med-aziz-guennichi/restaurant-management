@@ -44,14 +44,6 @@
 - [config](config): Stores configuration files and settings for the project.
 - [utils](utils): Houses various utility functions and modules that are used throughout the project.
 
-## ⚙️ Setting Up
-
-#### Your Environment Variable
-
-- Step 1
-
-- Step 2
-
 ## 🚀 Run Locally
 1.Clone the restaurant-management repository:
 ```sh
